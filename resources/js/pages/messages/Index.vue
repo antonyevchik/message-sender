@@ -2,13 +2,15 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { ref, nextTick, watch, onMounted } from 'vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle, SendHorizontal } from 'lucide-vue-next';
 import type { User } from '@/types/user';
 import type { MessageResponse } from '@/types/messages';
+import { useEcho } from '@laravel/echo-vue';
 
 const props = defineProps<{
   user: User;
@@ -22,12 +24,46 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
+const messages = ref([...props.messages]);
+const page = usePage();
+const authUserId = page.props.auth.user.id;
+const messagesContainer = ref<HTMLElement | null>(null);
+const bottomAnchor = ref<HTMLElement | null>(null);
+const scrollToBottom = async () => {
+    await nextTick();
+    bottomAnchor.value?.scrollIntoView({
+        top: messagesContainer.value.scrollHeight,
+        behavior: 'smooth'
+    });
+}
+
+onMounted(() => {
+    scrollToBottom();
+});
+
+watch(messages, scrollToBottom);
+
+useEcho(
+    `App.Models.User.${authUserId}`,
+    ".MessageSent",
+    (e) => {
+        messages.value.push(e.message);
+        scrollToBottom();
+    }
+);
+
 const messageForm = useForm({
     body: ''
 });
 
 const submit = () => {
-    messageForm.post(`/users/${props.user.id}/messages`);
+    messageForm.post(`/users/${props.user.id}/messages`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            messageForm.reset();
+            scrollToBottom();
+        }
+    });
 };
 </script>
 
@@ -39,9 +75,12 @@ const submit = () => {
         <CardTitle class="space-x-3 overflow-hidden">Chat with {{ props.user.name }}</CardTitle>
       </CardHeader>
       <CardContent class="flex flex-col mx-auto w-full max-w-[1440px] px-0 h-full">
-        <div class="flex flex-col gap-2 p-4 overflow-y-auto flex-1">
+        <div
+            ref="messagesContainer"
+            class="flex flex-col gap-2 p-4 overflow-y-auto flex-1"
+        >
           <div
-            v-for="message in props.messages"
+            v-for="message in messages"
             :key="message.id"
             class="flex flex-col"
             :class="message.sender_id === props.user.id ? 'self-start' : 'self-end'"
@@ -56,6 +95,7 @@ const submit = () => {
                 {{ new Date(message.created_at).toLocaleTimeString() }}
             </span>
           </div>
+          <div ref="bottomAnchor"></div>
         </div>
         <div class="p-4">
             <form @submit.prevent="submit">
@@ -64,6 +104,7 @@ const submit = () => {
                         id="message"
                         type="text"
                         required
+                        autofocus
                         v-model="messageForm.body"
                         placeholder="Type your message"
                         class="pr-16"

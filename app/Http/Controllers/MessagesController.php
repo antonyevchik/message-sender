@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\User;
 use App\Http\Requests\MessageStoreRequest;
@@ -28,10 +29,12 @@ class MessagesController extends Controller
     public function store(MessageStoreRequest $request, User $user)
     {
         $validated = $request->validated();
-        Message::create([
+        $message = Message::create([
             'sender_id' => auth()->id(),
             'recipient_id' => $user->id,
             'body' => $validated['body']
         ]);
+
+        MessageSent::dispatch($message);
     }
 }
