@@ -20,8 +20,8 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
             $table->text('body');
-            $table->dateTime('read_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -35,12 +35,16 @@ const props = defineProps<{
             </thead>
             <tbody class="text-xs sm:text-sm md:text-base divide-y divide-gray-200 bg-white dark:bg-stone-700 text-gray-700 dark:text-gray-300">
               <tr v-for="user in props.users.data" :key="user.id">
-                <td class="px-2 py-2">
-                  {{ user.id }}
-                </td>
-                <td class="px-2 py-2">
-                  {{ user.name }}
-                </td>
+                    <td class="px-2 py-2">
+                        <a :href="`/users/${user.id}/messages`">
+                            {{ user.id }}
+                        </a>
+                    </td>
+                    <td class="px-2 py-2">
+                        <a :href="`/users/${user.id}/messages`">
+                            {{ user.name }}
+                        </a>
+                    </td>
               </tr>
             </tbody>
           </table>

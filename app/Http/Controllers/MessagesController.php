@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Http\Requests\MessageStoreRequest;
 use Inertia\Inertia;
 
 class MessagesController extends Controller
@@ -16,59 +16,22 @@ class MessagesController extends Controller
     {
         return Inertia::render('messages/Index', [
             'user' => $user,
-            'messages' => Message::between(auth()->guard('web')->id(), $user->id)
-                ->latest('id')
+            'messages' => Message::between(auth()->id(), $user->id)
                 ->take(100)
-                ->orderBy('id')
                 ->get()
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(MessageStoreRequest $request, User $user)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $validated = $request->validated();
+        Message::create([
+            'sender_id' => auth()->id(),
+            'recipient_id' => $user->id,
+            'body' => $validated['body']
+        ]);
     }
 }
