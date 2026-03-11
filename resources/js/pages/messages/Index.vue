@@ -11,6 +11,7 @@ import { LoaderCircle, SendHorizontal } from 'lucide-vue-next';
 import type { User } from '@/types/user';
 import type { MessageResponse } from '@/types/messages';
 import { useEcho } from '@laravel/echo-vue';
+import axios from 'axios';
 
 const props = defineProps<{
   user: User;
@@ -48,6 +49,7 @@ onMounted(() => {
     entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const messageId = entry.target.dataset.id
+                console.log(messageId);
                 markMessageRead(messageId)
 
                 observer.unobserve(entry.target)
@@ -56,11 +58,11 @@ onMounted(() => {
     },
     {
         threshold: 0.8
-    })
+    });
 
     messageRefs.value.forEach(el => {
-        if (el) observer.observe(el)
-    })
+        if (el) observer.observe(el);
+    });
 });
 
 watch(messages, scrollToBottom);
@@ -75,7 +77,8 @@ useEcho(
 );
 
 const markMessageRead = (id) => {
-  // axios
+    console.log("Message: ", id);
+    axios.post(`/messages/${id}/read`);
 }
 
 const messageForm = useForm({
@@ -108,7 +111,7 @@ const submit = () => {
           <div
             v-for="message in messages"
             :key="message.id"
-            :ref="message.read_at !== null ? el => messageRefs.push(el) : null"
+            :ref="(message.read_at === null && message.recipient_id === authUserId) ? el => messageRefs.push(el) : null"
             :data-id="message.id"
             class="flex flex-col"
             :class="message.sender_id === props.user.id ? 'self-start' : 'self-end'"

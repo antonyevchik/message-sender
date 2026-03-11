@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\MarkMessageRead;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -15,6 +16,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->only(['index']);
     Route::resource('users.messages', MessagesController::class)
         ->only(['index', 'store']);
+    Route::post('/messages/{message}/read', MarkMessageRead::class)
+        ->name('messages.read');
 });
 
 require __DIR__ . '/settings.php';
