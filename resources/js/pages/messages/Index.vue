@@ -29,6 +29,7 @@ const page = usePage();
 const authUserId = page.props.auth.user.id;
 const messagesContainer = ref<HTMLElement | null>(null);
 const bottomAnchor = ref<HTMLElement | null>(null);
+
 const scrollToBottom = async () => {
     await nextTick();
     bottomAnchor.value?.scrollIntoView({
@@ -37,8 +38,29 @@ const scrollToBottom = async () => {
     });
 }
 
+const messageRefs = ref([]);
+
+let observer;
+
 onMounted(() => {
     scrollToBottom();
+    observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const messageId = entry.target.dataset.id
+                markMessageRead(messageId)
+
+                observer.unobserve(entry.target)
+            }
+        })
+    },
+    {
+        threshold: 0.8
+    })
+
+    messageRefs.value.forEach(el => {
+        if (el) observer.observe(el)
+    })
 });
 
 watch(messages, scrollToBottom);
@@ -51,6 +73,10 @@ useEcho(
         scrollToBottom();
     }
 );
+
+const markMessageRead = (id) => {
+  // axios
+}
 
 const messageForm = useForm({
     body: ''
@@ -82,6 +108,8 @@ const submit = () => {
           <div
             v-for="message in messages"
             :key="message.id"
+            :ref="message.read_at !== null ? el => messageRefs.push(el) : null"
+            :data-id="message.id"
             class="flex flex-col"
             :class="message.sender_id === props.user.id ? 'self-start' : 'self-end'"
           >

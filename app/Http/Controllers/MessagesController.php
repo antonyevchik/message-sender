@@ -29,12 +29,19 @@ class MessagesController extends Controller
     public function store(MessageStoreRequest $request, User $user)
     {
         $validated = $request->validated();
-        $message = Message::create([
-            'sender_id' => auth()->id(),
-            'recipient_id' => $user->id,
-            'body' => $validated['body']
-        ]);
 
-        MessageSent::dispatch($message);
+        try {
+            $message = Message::create([
+                'sender_id' => auth()->id(),
+                'recipient_id' => $user->id,
+                'body' => $validated['body']
+            ]);
+
+            if ($message) {
+                MessageSent::dispatch($message);
+            }
+        } catch (\Exception $e) {
+            report($e);
+        }
     }
 }
