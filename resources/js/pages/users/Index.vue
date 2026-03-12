@@ -3,7 +3,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import type { UserResponse } from '@/types/user';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
+import axios from 'axios';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -15,6 +17,21 @@ const breadcrumbs: BreadcrumbItem[] = [
 const props = defineProps<{
   users: UserResponse;
 }>();
+
+const page = usePage();
+const authUserId = page.props.auth.user.id;
+
+useEcho(`App.Models.User.${authUserId}`, '.MessageSent', () => {
+    refreshUnreadCounts();
+});
+
+const refreshUnreadCounts = async () => {
+    const { data } = await axios.get('/users/unread-counts');
+
+    props.users.data.forEach(user => {
+        user.unread_count = data[user.id] ?? 0;
+    });
+}
 </script>
 
 <template>
@@ -44,6 +61,12 @@ const props = defineProps<{
                         <a :href="`/users/${user.id}/messages`">
                             {{ user.name }}
                         </a>
+                        <span
+                            v-if="user.unread_count > 0"
+                            class="inline-block mx-3 px-2 py-0.5 text-xs font-medium text-white bg-red-500 rounded-full"
+                        >
+                            {{ user.unread_count }}
+                        </span>
                     </td>
               </tr>
             </tbody>

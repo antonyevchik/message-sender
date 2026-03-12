@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GetUnreadMessageCounts;
 use App\Http\Controllers\MessagesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\MarkMessageRead;
@@ -18,6 +19,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->only(['index', 'store']);
     Route::post('/messages/{message}/read', MarkMessageRead::class)
         ->name('messages.read');
+    Route::get('/users/unread-counts', GetUnreadMessageCounts::class)
+        ->name('users.unread');
 });
 
 require __DIR__ . '/settings.php';

@@ -13,7 +13,9 @@ class UsersController extends Controller
     public function index()
     {
         return Inertia::render('users/Index', [
-            'users' => User::paginate(50)
+            'users' => User::query()
+                ->withUnreadMessagesFor(auth()->id())
+                ->paginate(50)
         ]);
     }
 }

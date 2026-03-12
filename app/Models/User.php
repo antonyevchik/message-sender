@@ -49,4 +49,24 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id', 'id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'recipient_id', 'id');
+    }
+
+    public function scopeWithUnreadMessagesFor($query, $userId)
+    {
+        return $query->withCount([
+            'receivedMessages as unread_count' => function ($q) use ($userId) {
+                $q->whereNull('read_at')
+                    ->where('sender_id', $userId);
+            }
+        ]);
+    }
 }
