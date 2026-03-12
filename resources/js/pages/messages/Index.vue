@@ -77,7 +77,6 @@ useEcho(
 );
 
 const markMessageRead = (id) => {
-    console.log("Message: ", id);
     axios.post(`/messages/${id}/read`);
 }
 

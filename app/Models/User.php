@@ -55,17 +55,12 @@ class User extends Authenticatable
         return $this->hasMany(Message::class, 'sender_id', 'id');
     }
 
-    public function receivedMessages()
-    {
-        return $this->hasMany(Message::class, 'recipient_id', 'id');
-    }
-
     public function scopeWithUnreadMessagesFor($query, $userId)
     {
         return $query->withCount([
-            'receivedMessages as unread_count' => function ($q) use ($userId) {
+            'sentMessages as unread_count' => function ($q) use ($userId) {
                 $q->whereNull('read_at')
-                    ->where('sender_id', $userId);
+                    ->where('recipient_id', $userId);
             }
         ]);
     }
