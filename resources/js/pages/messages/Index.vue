@@ -49,7 +49,6 @@ onMounted(() => {
     entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const messageId = entry.target.dataset.id
-                console.log(messageId);
                 markMessageRead(messageId)
 
                 observer.unobserve(entry.target)
